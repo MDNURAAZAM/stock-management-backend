@@ -48,5 +48,5 @@ class Transaction(Base):
     description: Mapped[str] = mapped_column(String(255), nullable=True)
     timestamp: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    supplier: Mapped[Supplier] = relationship(back_populates="transactions")
+    supplier: Mapped[Supplier] = relationship(back_populates="transaction")
     customer: Mapped[Customer] = relationship(back_populates="transactions")
