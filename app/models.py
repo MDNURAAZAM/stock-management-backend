@@ -1,11 +1,8 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, Float, ForeignKey, String
 from sqlalchemy.sql import func
 from datetime import datetime
-
-
-class Base(DeclarativeBase):
-    pass
+from .database import Base
 
 
 class Product(Base):
