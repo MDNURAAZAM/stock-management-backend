@@ -1,8 +1,17 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship,
-from sqlalchemy import Integer, Float, ForeignKey, String, Enum, NUMERIC,CheckConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import (
+    Integer,
+    Float,
+    ForeignKey,
+    String,
+    Enum,
+    NUMERIC,
+    CheckConstraint,
+)
 from sqlalchemy.sql import func
 from datetime import datetime
 from .database import Base
+
 
 # ----------------------
 # ENUMS
@@ -27,11 +36,10 @@ class Product(Base):
     updated_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), onupdate=func.now()
     )
-    
-    __table_args__ = (
-        CheckConstraint("quantity >= 0", name="check_product_quantity_non_negative")
-    )
 
+    __table_args__ = CheckConstraint(
+        "quantity >= 0", name="check_product_quantity_non_negative"
+    )
 
 
 class Supplier(Base):
