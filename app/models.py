@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import (
-    Integer,
-    Float,
     ForeignKey,
     String,
     Enum,
@@ -42,36 +40,56 @@ class Product(Base):
     )
 
 
+# ----------------------
+# SUPPLIER
+# ----------------------
 class Supplier(Base):
     __tablename__ = "suppliers"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     contact: Mapped[str] = mapped_column(String(20), unique=True, nullable=True)
-    balance: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    balance: Mapped[float] = mapped_column(NUMERIC(10, 2), nullable=False, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    transactions: Mapped[list["Transaction"]] = relationship(
+        back_populates="supplier", cascade="all, delete-orphan"
+    )
 
-    transactions: Mapped[list["Transaction"]] = relationship(back_populates="supplier")
 
-
+# ----------------------
+# CUSTOMER
+# ----------------------
 class Customer(Base):
     __tablename__ = "customers"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     contact: Mapped[str] = mapped_column(String(20), unique=True, nullable=True)
-    balance: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    balance: Mapped[float] = mapped_column(NUMERIC(10, 2), nullable=False, default=0.0)
     address: Mapped[str] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    transactions: Mapped[list["Transaction"]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan"
+    )
 
-    transactions: Mapped[list["Transaction"]] = relationship(back_populates="customer")
 
-
+# ----------------------
+# TRANSACTION
+# ----------------------
 class Transaction(Base):
     __tablename__ = "transactions"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    type: Mapped[str] = mapped_column(Enum(TransactionType), nullable=False)
-    supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"), nullable=True)
-    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"), nullable=True)
-    amount: Mapped[float] = mapped_column(nullable=False)
+    type: Mapped[TransactionType] = mapped_column(Enum(TransactionType), nullable=False)
+
+    supplier_id: Mapped[int | None] = mapped_column(
+        ForeignKey("suppliers.id"), nullable=True, index=True
+    )
+
+    customer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("customers.id"), nullable=True, index=True
+    )
+
+    amount: Mapped[float] = mapped_column(NUMERIC(10, 2), nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
-    timestamp: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     supplier: Mapped[Supplier] = relationship(back_populates="transactions")
     customer: Mapped[Customer] = relationship(back_populates="transactions")
