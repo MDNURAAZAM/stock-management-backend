@@ -1,17 +1,37 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, Float, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship,
+from sqlalchemy import Integer, Float, ForeignKey, String, Enum, NUMERIC,CheckConstraint
 from sqlalchemy.sql import func
 from datetime import datetime
 from .database import Base
 
+# ----------------------
+# ENUMS
+# ----------------------
+class TransactionType(Enum):
+    supplier = "supplier"
+    customer = "customer"
 
+
+# ----------------------
+# PRODUCT
+# ----------------------
 class Product(Base):
     __tablename__ = "products"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(unique=True, nullable=False)
-    description: Mapped[str] = mapped_column(nullable=True)
-    quantity: Mapped[int] = mapped_column(default=0)  # Stock count
-    price: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
+    quantity: Mapped[int] = mapped_column(default=0, nullable=False)  # Stock count
+    price: Mapped[float] = mapped_column(NUMERIC(10, 2), nullable=False, default=0.0)
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), onupdate=func.now()
+    )
+    
+    __table_args__ = (
+        CheckConstraint("quantity >= 0", name="check_product_quantity_non_negative")
+    )
+
 
 
 class Supplier(Base):
@@ -38,7 +58,7 @@ class Customer(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    type: Mapped[str] = mapped_column(nullable=False)  # 'supplier' or 'customer'
+    type: Mapped[str] = mapped_column(Enum(TransactionType), nullable=False)
     supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"), nullable=True)
     customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"), nullable=True)
     amount: Mapped[float] = mapped_column(nullable=False)
